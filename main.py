@@ -59,6 +59,7 @@ def receive_handler(message):
 
 
 if __name__ == '__main__':
+
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_message = on_message
