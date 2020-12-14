@@ -8,6 +8,7 @@ from threading import Thread
 import math
 from pydispatch import dispatcher
 from datetime import datetime
+from queue import Queue
 run_once = True
 
 py_filename_without_extension = ""
@@ -17,6 +18,7 @@ xl_filename = ""
 stop_thread = False
 error_cell_address = "A1"
 status_cell_address = "B1"
+
 
 # --------------------------------------------------------------------------
 def main():
@@ -54,6 +56,10 @@ def main():
 
 # --------------------------------------------------------------------------
 def start(interval, count):
+
+    if xl_filename == (""):
+        main()
+
     wb = xw.Book.caller()
     wb.sheets.active.range(error_cell_address).value = ""
     wb.sheets.active.api.OLEObjects("MessageBox").Object.Value = "Started...\n"
@@ -100,6 +106,7 @@ def stop():
 # --------------------------------------------------------------------------
 def measure(t, count):
     global stop_thread
+    global client
 
     # accessing the sheet with index 0
     sht = xw.Book(xl_filename).sheets[0]    #sheet 0 = 1.Tabelle
@@ -182,6 +189,9 @@ def on_connect(_client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     _client.subscribe("maqlab/#")
 
+    _client.publish("maqlab/user1/cmd/?")
+    # _client.subscribe("maqlab/+/rep/#")
+
 
 def on_message(_client, userdata, msg):
     # print(msg.topic + " " + str(msg.payload))
@@ -199,24 +209,50 @@ def receive_handler(message):
     # print('message in receive_handler: {}'.format(message))
     global run_once
     global starttime
+    # print(message)
     if message.split("|")[0] == 'maqlab/ping/':
         message_splitted = message.split("|")
         t = float(message_splitted[1])
         t = t+7200  #+2h aufgrund falscher Zeitzone
         print(datetime.utcfromtimestamp(t).strftime('%Y-%m-%d %H:%M:%S'))  #unix timestamp in Datum und Zeit
 
-    if run_once:                # globale Variable, dass man nur einmal in die Funktion kommt
-        run_once = False
-        starttime = t
+        if run_once:                # globale Variable, dass man nur einmal in die Funktion kommt
+            run_once = False
+            starttime = t
 
-    timex = t - starttime
-    print(int(timex))
+        timex = t - starttime
+        print(int(timex), "s")
 
+    # print(str(message.split("|")[0]))
+
+    if '/accessnumber' in message:
+        accessnumber = message.split("|")[1]
+        topic =  message.split("|")[0]
+        device_name = topic.split("/")[3]
+        # message_new = message.replace('maqlab/user1/rep/', '')
+        # message_new = message_new.replace('/accessnumber', '')
+        print(device_name, accessnumber)
+        #exec("%s = %d" % (message_new.split("|")[0], int(message_new.split("|")[1])))     # Topic als Variable ihren Wert zuweisen
+        #print(message_new)
+
+        #n = 1
+        #Geraet[n] = message_new.split("|")[0]
+
+        #n = n+1
+
+
+    #vars()[message_new.split("|")[0]] = message_new.split("|")[1]
+    #print(message_new.split("|")[0])
+
+'''
     if message.split("|")[0] == 'maqlab/eingeraet/volt':
         print("Voltage: " + str(message.split("|")[1]) + "V")
 
     if message.split("|")[0] == 'maqlab/eingeraet/current':
         print("Current: " + str(message.split("|")[1]) + "A")
+'''
+
+
 
 # Press the green button in the gutter to run the script.
 
@@ -240,3 +276,4 @@ if __name__ == '__main__':
 
     # thread.join()
     # print("thread finished...exiting")
+

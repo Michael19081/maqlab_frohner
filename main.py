@@ -55,6 +55,7 @@ def receive_handler(message):
     if message.split("|")[0] == 'maqlab/eingeraet/current':
         print("Current: " + str(message.split("|")[1]) + "A")
 
+
 # Press the green button in the gutter to run the script.
 
 
