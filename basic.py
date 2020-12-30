@@ -55,6 +55,22 @@ def main():
     wb = xw.Book.caller()
     wb.sheets.active.api.OLEObjects("MessageBox").Object.Value = "Initialized sucessfully\n"
 
+    client = mqtt.Client()
+    client.on_connect = on_connect
+    client.on_message = on_message
+    client.username_pw_set("maqlab", "maqlab")
+    client.connect("techfit.at", 1883, 60)
+
+    thread = Thread(target=mqtt_loop, args=(client,))
+    thread.start()
+
+    dispatcher.connect(receive_handler, signal="receive", sender="mqtt")
+    time.sleep(1)
+    active_devices.clear()
+    client.publish("maqlab/user1/cmd/?")
+    time.sleep(1)
+    print(active_devices)
+
 
 # --------------------------------------------------------------------------
 def start(interval, count):
