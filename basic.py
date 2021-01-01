@@ -161,6 +161,7 @@ def measure(t, count):
             Current = 0
             Zeile = 3
 
+        '''
         sht.range(3, 12).value = str("Voltage")
         sht.range(3, 13).value = str("Current")
         Zeile = Zeile + 1
@@ -170,6 +171,24 @@ def measure(t, count):
         sht.range(cell_vol).value = str(Voltage)
         cell_cur = (Zeile, 13)
         sht.range(cell_cur).value = str(Current)
+        '''
+
+        #sht.range("X2").value = [['TabKopfX', 'TabKopfY'], [1, 2, 3, 4], [10, 20, 30, 40]]
+
+        sp1 = (sht["N13"].value)
+        if sp1 == 1:
+            print("vdc?")
+            #client.publish("maqlab/user1/cmd/9656/vdc?")
+        if sp1 == 2:
+            print("vac?")
+            #client.publish("maqlab/user1/cmd/9656/vac?")
+        if sp1 == 3:
+            print("idc?")
+            #client.publish("maqlab/user1/cmd/9656/idc?")
+        if sp1 == 4:
+            print("iac?")
+            #client.publish("maqlab/user1/cmd/9656/iac?")
+
 
         # -------------------------------------------
 
