@@ -10,6 +10,7 @@ from pydispatch import dispatcher
 from datetime import datetime
 import queue
 
+q = queue.Queue()
 run_once = True
 
 py_filename_without_extension = ""
@@ -71,8 +72,11 @@ def main():
     time.sleep(1)
     print(active_devices)
 
-    #client.publish(str(wert1))
-
+    '''
+    wert1 = q.get()
+    client.publish(str(wert1))
+    q.task_done()
+    '''
 
 # --------------------------------------------------------------------------
 def start(interval, count):
@@ -173,10 +177,9 @@ def measure(t, count):
 
 
         sp1 = (sht["N14"].value)
-
-        global wert1
         wert1 = "maqlab/user1/cmd/"+str(accesnr)+"/"+str(sp1)+"?"
         print(wert1)
+        #q.put(wert1)
 
         '''
         sp2 = (sht["O14"].value)
