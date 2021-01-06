@@ -8,7 +8,7 @@ from threading import Thread
 import math
 from pydispatch import dispatcher
 from datetime import datetime
-from queue import Queue
+import queue
 
 run_once = True
 
@@ -70,6 +70,8 @@ def main():
     client.publish("maqlab/user1/cmd/?")
     time.sleep(1)
     print(active_devices)
+
+    #client.publish(str(wert1))
 
 
 # --------------------------------------------------------------------------
@@ -161,34 +163,64 @@ def measure(t, count):
             Current = 0
             Zeile = 3
 
-        '''
-        sht.range(3, 12).value = str("Voltage")
-        sht.range(3, 13).value = str("Current")
-        Zeile = Zeile + 1
-        Voltage = Voltage + 2
-        Current = Current + 0.4
-        cell_vol = (Zeile, 12)
-        sht.range(cell_vol).value = str(Voltage)
-        cell_cur = (Zeile, 13)
-        sht.range(cell_cur).value = str(Current)
-        '''
 
-        #sht.range("X2").value = [['TabKopfX', 'TabKopfY'], [1, 2, 3, 4], [10, 20, 30, 40]]
+        #sht.range('E32').value = [['TabKopfX', 'TabKopfY'], [1, 2], [10, 20]]
 
-        sp1 = (sht["N13"].value)
-        if sp1 == 1:
+        sht.range('C22').value = 'Verfuegbar'
+        sht.range('C23').value = active_devices
+        accesnr = sht.range('L15').value
+        accesnr = int(accesnr)
+
+
+        sp1 = (sht["N14"].value)
+
+        global wert1
+        wert1 = "maqlab/user1/cmd/"+str(accesnr)+"/"+str(sp1)+"?"
+        print(wert1)
+
+        '''
+        sp2 = (sht["O14"].value)
+        if sp2 == 'vdc':
             print("vdc?")
             #client.publish("maqlab/user1/cmd/9656/vdc?")
-        if sp1 == 2:
+        if sp2 == 'vac':
             print("vac?")
             #client.publish("maqlab/user1/cmd/9656/vac?")
-        if sp1 == 3:
+        if sp2 == 'idc':
             print("idc?")
             #client.publish("maqlab/user1/cmd/9656/idc?")
-        if sp1 == 4:
+        if sp2 == 'iac':
             print("iac?")
             #client.publish("maqlab/user1/cmd/9656/iac?")
 
+        sp3 = (sht["P14"].value)
+        if sp3 == 'vdc':
+            print("vdc?")
+            #client.publish("maqlab/user1/cmd/9656/vdc?")
+        if sp3 == 'vac':
+            print("vac?")
+            #client.publish("maqlab/user1/cmd/9656/vac?")
+        if sp3 == 'idc':
+            print("idc?")
+            #client.publish("maqlab/user1/cmd/9656/idc?")
+        if sp3 == 'iac':
+            print("iac?")
+            #client.publish("maqlab/user1/cmd/9656/iac?")
+
+        sp4 = (sht["Q14"].value)
+        if sp4 == 'vdc':
+            print("vdc?")
+            #client.publish("maqlab/user1/cmd/9656/vdc?")
+        if sp4 == 'vac':
+            print("vac?")
+            #client.publish("maqlab/user1/cmd/9656/vac?")
+        if sp4 == 'idc':
+            print("idc?")
+            #client.publish("maqlab/user1/cmd/9656/idc?")
+        if sp4 == 'iac':
+            print("iac?")
+            #client.publish("maqlab/user1/cmd/9656/iac?")
+        '''
 
         # -------------------------------------------
 
