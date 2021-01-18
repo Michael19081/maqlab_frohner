@@ -21,6 +21,10 @@ stop_thread = False
 error_cell_address = "A1"
 status_cell_address = "B1"
 active_devices = []
+client = None
+accessnr = None
+wertzahl = None
+wertzahl = []
 
 
 # --------------------------------------------------------------------------
@@ -28,6 +32,7 @@ def main():
     global py_filename_without_extension
     global py_filename
     global xl_filename
+    global client
 
     py_filename = os.path.basename(__file__)
     # check .py extension
@@ -72,11 +77,6 @@ def main():
     time.sleep(1)
     print(active_devices)
 
-    '''
-    wert1 = q.get()
-    client.publish(str(wert1))
-    q.task_done()
-    '''
 
 # --------------------------------------------------------------------------
 def start(interval, count):
@@ -130,6 +130,8 @@ def stop():
 def measure(t, count):
     global stop_thread
     global client
+    global accessnr
+    global wertzahl
 
     # accessing the sheet with index 0
     sht = xw.Book(xl_filename).sheets[0]  # sheet 0 = 1.Tabelle
@@ -167,63 +169,27 @@ def measure(t, count):
             Current = 0
             Zeile = 3
 
-
-        #sht.range('E32').value = [['TabKopfX', 'TabKopfY'], [1, 2], [10, 20]]
+        # sht.range('E32').value = [['TabKopfX', 'TabKopfY'], [1, 2], [10, 20]]
 
         sht.range('C22').value = 'Verfuegbar'
         sht.range('C23').value = active_devices
-        accesnr = sht.range('L15').value
-        accesnr = int(accesnr)
-
+        accessnr = sht.range('L15').value
+        accessnr = int(accessnr)
 
         sp1 = (sht["N14"].value)
-        wert1 = "maqlab/user1/cmd/"+str(accesnr)+"/"+str(sp1)+"?"
-        print(wert1)
-        #q.put(wert1)
+        wert1 = "maqlab/user1/cmd/" + str(accessnr) + "/" + str(sp1) + "?"
+        #print(wert1)
+        client.publish(topic=wert1, payload="");
+
+        cell = (i + 16, 14)
+        sht.range(cell).value = wertzahl
 
         '''
         sp2 = (sht["O14"].value)
-        if sp2 == 'vdc':
-            print("vdc?")
-            #client.publish("maqlab/user1/cmd/9656/vdc?")
-        if sp2 == 'vac':
-            print("vac?")
-            #client.publish("maqlab/user1/cmd/9656/vac?")
-        if sp2 == 'idc':
-            print("idc?")
-            #client.publish("maqlab/user1/cmd/9656/idc?")
-        if sp2 == 'iac':
-            print("iac?")
-            #client.publish("maqlab/user1/cmd/9656/iac?")
 
-        sp3 = (sht["P14"].value)
-        if sp3 == 'vdc':
-            print("vdc?")
-            #client.publish("maqlab/user1/cmd/9656/vdc?")
-        if sp3 == 'vac':
-            print("vac?")
-            #client.publish("maqlab/user1/cmd/9656/vac?")
-        if sp3 == 'idc':
-            print("idc?")
-            #client.publish("maqlab/user1/cmd/9656/idc?")
-        if sp3 == 'iac':
-            print("iac?")
-            #client.publish("maqlab/user1/cmd/9656/iac?")
-
-        sp4 = (sht["Q14"].value)
-        if sp4 == 'vdc':
-            print("vdc?")
-            #client.publish("maqlab/user1/cmd/9656/vdc?")
-        if sp4 == 'vac':
-            print("vac?")
-            #client.publish("maqlab/user1/cmd/9656/vac?")
-        if sp4 == 'idc':
-            print("idc?")
-            #client.publish("maqlab/user1/cmd/9656/idc?")
-        if sp4 == 'iac':
-            print("iac?")
-            #client.publish("maqlab/user1/cmd/9656/iac?")
         '''
+
+        # sht.range('N15').value = sp1_wert
 
         # -------------------------------------------
 
@@ -279,19 +245,21 @@ def receive_handler(message):
     global run_once
     global starttime
     global active_devices
+    global accessnr
+    global wertzahl
     # print(message)
     if message.split("|")[0] == 'maqlab/ping/':
         message_splitted = message.split("|")
         t = float(message_splitted[1])
         t = t + 7200  # +2h aufgrund falscher Zeitzone
-        print(datetime.utcfromtimestamp(t).strftime('%Y-%m-%d %H:%M:%S'))  # unix timestamp in Datum und Zeit
 
         if run_once:  # globale Variable, dass man nur einmal in die Funktion kommt
             run_once = False
             starttime = t
+            print(datetime.utcfromtimestamp(t).strftime('%Y-%m-%d %H:%M:%S'))  # unix timestamp in Datum und Zeit
 
         timex = t - starttime
-        print(int(timex), "s")
+        #print(int(timex), "s")
 
     # print(str(message.split("|")[0]))
 
@@ -306,22 +274,15 @@ def receive_handler(message):
         # exec("%s = %d" % (message_new.split("|")[0], int(message_new.split("|")[1])))     # Topic als Variable ihren Wert zuweisen
         # print(message_new)
 
-        # n = 1
-        # Geraet[n] = message_new.split("|")[0]
+    if str("/rep/" + str(accessnr)) in message:      #Werte von gewählter Größe abfragen
+        wertzahl = message.split("|")[1]
+        # wertzahl.append(message.split("|")[1])
+        #werttopic = message.split("/")[3]          #bereits in wertzahl enthalten
 
-        # n = n+1
 
     # vars()[message_new.split("|")[0]] = message_new.split("|")[1]
     # print(message_new.split("|")[0])
 
-
-'''
-    if message.split("|")[0] == 'maqlab/eingeraet/volt':
-        print("Voltage: " + str(message.split("|")[1]) + "V")
-
-    if message.split("|")[0] == 'maqlab/eingeraet/current':
-        print("Current: " + str(message.split("|")[1]) + "A")
-'''
 
 # Press the green button in the gutter to run the script.
 
@@ -345,7 +306,7 @@ if __name__ == '__main__':
     while True:
         time.sleep(1)
         # client.publish("topic", "payload");
-        print("Hauptschleife")
+        #print("Hauptschleife")
 
     # thread.join()
     # print("thread finished...exiting")
